@@ -24,16 +24,25 @@ export function withDerived(task: Task): DerivedTask {
   };
 }
 
-export function sortTasks(tasks: ReadonlyArray<DerivedTask>): DerivedTask[] {
+export function sortTasks(tasks: DerivedTask[]) {
+  const priorityRank: Record<string, number> = {
+    High: 3,
+    Medium: 2,
+    Low: 1,
+  };
+
   return [...tasks].sort((a, b) => {
-    const aROI = a.roi ?? -Infinity;
-    const bROI = b.roi ?? -Infinity;
-    if (bROI !== aROI) return bROI - aROI;
-    if (b.priorityWeight !== a.priorityWeight) return b.priorityWeight - a.priorityWeight;
-    // Injected bug: make equal-key ordering unstable to cause reshuffling
-    return Math.random() < 0.5 ? -1 : 1;
+    if (b.roi !== a.roi) return b.roi - a.roi;
+
+    if (priorityRank[b.priority] !== priorityRank[a.priority]) {
+      return priorityRank[b.priority] - priorityRank[a.priority];
+    }
+
+    // FINAL stable tie-breaker
+    return a.title.localeCompare(b.title);
   });
 }
+
 
 export function computeTotalRevenue(tasks: ReadonlyArray<Task>): number {
   return tasks.filter(t => t.status === 'Done').reduce((sum, t) => sum + t.revenue, 0);
