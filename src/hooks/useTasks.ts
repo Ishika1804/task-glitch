@@ -140,12 +140,19 @@ export function useTasks(): UseTasksState {
   }, []);
 
   const deleteTask = useCallback((id: string) => {
-    setTasks(prev => {
-      const target = prev.find(t => t.id === id) || null;
-      setLastDeleted(target);
-      return prev.filter(t => t.id !== id);
-    });
-  }, []);
+  setTasks(prev => {
+    const target = prev.find(t => t.id === id) || null;
+    setLastDeleted(target);
+
+    // Clear undo after snackbar lifetime (~4s)
+    setTimeout(() => {
+      setLastDeleted(null);
+    }, 4000);
+
+    return prev.filter(t => t.id !== id);
+  });
+}, []);
+
 
   const undoDelete = useCallback(() => {
     if (!lastDeleted) return;
